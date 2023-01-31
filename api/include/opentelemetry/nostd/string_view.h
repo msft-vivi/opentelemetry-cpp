@@ -44,6 +44,7 @@ public:
 
   string_view(const char *str, size_type len) noexcept : length_(len), data_(str) {}
 
+  // Allow explict converse from string_view to string, eg: std::string s = static_cast<std::string>(sv).
   explicit operator std::string() const { return {data_, length_}; }
 
   const char *data() const noexcept { return data_; }
