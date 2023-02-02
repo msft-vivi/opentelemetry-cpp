@@ -41,8 +41,10 @@ public:
   {
     constexpr char kHex[] = "0123456789abcdef";
     for (int i = 0; i < kSize; ++i)
-    {
+    { 
+      // Get the base16 representation of rep_[i] hiher 4 bits
       buffer[i * 2 + 0] = kHex[(rep_[i] >> 4) & 0xF];
+      // Get the base16 representation of rep_[i] lower 4 bits
       buffer[i * 2 + 1] = kHex[(rep_[i] >> 0) & 0xF];
     }
   }
@@ -71,6 +73,7 @@ public:
   }
 
 private:
+  // kSize decimal number to represent a span_id.
   uint8_t rep_[kSize];
 };
 

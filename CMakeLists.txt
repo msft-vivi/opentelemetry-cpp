@@ -152,12 +152,12 @@ if(WITH_STL)
   endif()
 endif()
 
-option(WITH_OTLP "Whether to include the OpenTelemetry Protocol in the SDK" OFF)
+option(WITH_OTLP "Whether to include the OpenTelemetry Protocol in the SDK" ON)
 
 option(WITH_OTLP_HTTP "Whether to include the OTLP http exporter in the SDK"
-       OFF)
+       ON)
 
-option(WITH_ZIPKIN "Whether to include the Zipkin exporter in the SDK" OFF)
+option(WITH_ZIPKIN "Whether to include the Zipkin exporter in the SDK" ON)
 
 option(WITH_PROMETHEUS "Whether to include the Prometheus Client in the SDK"
        OFF)
@@ -171,9 +171,9 @@ option(WITH_JAEGER "DEPRECATED - Whether to include the Jaeger exporter" OFF)
 
 option(WITH_NO_GETENV "Whether the platform supports environment variables" OFF)
 
-option(BUILD_TESTING "Whether to enable tests" ON)
+option(BUILD_TESTING "Whether to enable tests" OFF)
 
-option(WITH_BENCHMARK "Whether to build benchmark program" ON)
+option(WITH_BENCHMARK "Whether to build benchmark program" OFF)
 
 option(BUILD_W3CTRACECONTEXT_TEST "Whether to build w3c trace context" OFF)
 

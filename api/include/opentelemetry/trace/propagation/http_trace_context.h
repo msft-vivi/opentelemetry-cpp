@@ -36,6 +36,7 @@ public:
   void Inject(opentelemetry::context::propagation::TextMapCarrier &carrier,
               const context::Context &context) noexcept override
   {
+    // In fact, context can carry many types, not only SpanContext, here is a implementation for propagate SpanContext.
     SpanContext span_context = trace::GetSpan(context)->GetContext();
     if (!span_context.IsValid())
     {
@@ -99,7 +100,12 @@ private:
     span_context.trace_flags().ToLowerBase16(
         nostd::span<char, 2>{&trace_parent[kTraceIdSize + kSpanIdSize + 5], 2});
 
+    // The inject span_context content will be saved into trace_parent, then be regarded as 
+    // parent of the receiver (new span).
+    // kTraceParent is the key of SpanContext.
     carrier.Set(kTraceParent, nostd::string_view(trace_parent, sizeof(trace_parent)));
+
+    // Concat all trace state key-value pairs to a string.
     const auto trace_state = span_context.trace_state()->ToHeader();
     if (!trace_state.empty())
     {

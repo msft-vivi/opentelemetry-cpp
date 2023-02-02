@@ -5,7 +5,7 @@
 
 set -e
 
-[ -z "${PROTOBUF_VERSION}" ] && export PROTOBUF_VERSION="3.11.4"
+[ -z "${PROTOBUF_VERSION}" ] && export PROTOBUF_VERSION="3.6.1"
 
 cd /
 wget https://github.com/google/protobuf/releases/download/v${PROTOBUF_VERSION}/protobuf-cpp-${PROTOBUF_VERSION}.tar.gz
