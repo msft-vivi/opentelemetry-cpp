@@ -46,6 +46,13 @@
         docker run -d -p 9411:9411 openzipkin/zipkin
     ```
 
+* After modified a .proto file, the previous build output should be cleaned.
+    ```
+        cmake --build . --target clean
+        
+        # build proto
+        cmake --build . --target zipkin_bond_proto
+    ```
 ## Q & A
 * Protobuf compiler version 3.21.6 doesn't match library version 3.6.1
     ```bash

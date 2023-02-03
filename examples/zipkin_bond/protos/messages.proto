@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package grpc_example;
+
+service Greeter {
+    rpc Greet(GreetRequest) returns (GreetResponse) {}
+}
+
+message GreetRequest {
+    string m_message = 1;
+    map<string, string> m_spanContext = 2;
+}
+
+message GreetResponse {
+    string m_message = 1;
+}
