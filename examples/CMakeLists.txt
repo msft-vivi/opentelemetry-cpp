@@ -29,6 +29,7 @@ add_subdirectory(multithreaded)
 add_subdirectory(multi_processor)
 add_subdirectory(zipkin_grpc)
 add_subdirectory(zipkin_bond)
+add_subdirectory(mock_sra_workflow)
 
 if(WITH_EXAMPLES_HTTP)
   add_subdirectory(http)

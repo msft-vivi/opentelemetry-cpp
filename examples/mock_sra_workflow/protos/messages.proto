@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package sra_demo;
+
+message QueryMasterRequest {
+    string m_message = 1;
+    map<string, string> m_spanContext = 2;
+}
+message QueryMasterResponse {
+    string m_message = 1;
+}
+
+service QueryMaster {
+    rpc CallService(QueryMasterRequest) returns (QueryMasterResponse) {}
+}
+
+message SaaSRequest {
+    string m_message = 1;
+    map<string, string> m_spanContext = 2;
+}
+
+message SaaSResponse {
+    string m_message = 1;
+}
+
+service SaaS {
+    rpc CallService(SaaSRequest) returns (SaaSResponse) {}
+}
+
+message RaaSRequest {
+    string m_message = 1;
+    map<string, string> m_spanContext = 2;
+}
+
+message RaaSResponse {
+    string m_message = 1;
+}
+
+service RaaS {
+    rpc CallService(RaaSRequest) returns (RaaSResponse) {}
+}

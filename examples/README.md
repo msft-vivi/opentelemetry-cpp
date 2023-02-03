@@ -73,3 +73,7 @@
 
 * [Error] File: /home/zw/cpp/opentelemetry-cpp/exporters/zipkin/src/zipkin_exporter.cc:55 [Zipkin Trace Exporter] Exporting 1 span(s) failed, exporter is shutdown
     * This is because a span not being end correctly, generally occuring when no explicitly invoke span's End() method. 
+
+
+* E0204 23:21:12.555564756   30360 client_context.cc:130]      assertion failed: call_ == nullptr
+    * ClientContext objects must not be used for multiple requests.
