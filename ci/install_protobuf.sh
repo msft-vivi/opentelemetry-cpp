@@ -8,9 +8,9 @@ set -e
 [ -z "${PROTOBUF_VERSION}" ] && export PROTOBUF_VERSION="3.6.1"
 
 cd /
-wget https://github.com/google/protobuf/releases/download/v${PROTOBUF_VERSION}/protobuf-cpp-${PROTOBUF_VERSION}.tar.gz
-tar zxf protobuf-cpp-${PROTOBUF_VERSION}.tar.gz --no-same-owner
-cd protobuf-${PROTOBUF_VERSION}
+wget https://github.com/google/protobuf/releases/download/v${PROTOBUF_VERSION}/protobuf-cpp-${CPP_PROTOBUF_VERSION}.tar.gz
+tar zxf protobuf-cpp-${CPP_PROTOBUF_VERSION}.tar.gz --no-same-owner
+cd protobuf-${CPP_PROTOBUF_VERSION}
 ./configure
-make && make install
+make -j $(nproc) && make install
 ldconfig
