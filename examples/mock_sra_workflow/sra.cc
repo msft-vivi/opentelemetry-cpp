@@ -13,22 +13,7 @@
 #include <condition_variable>
 #include <future>
 
-// std::mutex cv_m;
-// std::condition_variable cv;
-
 namespace trace_api = opentelemetry::trace;
-
-namespace sra
-{
-    const char* c_sraLibName = "SraLib";
-    const char* c_queryMasterClientLibName = "QueryMasterClientLib";
-    const char* c_queryMasterServerLibName = "QueryMasterServerLib";
-    const char* c_raasClientLibName = "RaaSClientLib";
-    const char* c_raasServerLibName = "RaaSServerLib";
-    const char* c_saasClientLibName = "SaaSClientLib";
-    const char* c_saasServerLibName = "SaaSServerLib";
-    const char* c_versionNumber = "1.0.0";
-}
 
 // IF RunQueryMasterClient call always failed, check whether some executable has take that port.
 void RunQueryMasterClient()
@@ -59,27 +44,6 @@ void RunQueryMasterClient()
     }
 }
 
-void RunQueryMasterServer()
-{
-    std::string ip = "0.0.0.0";
-    uint16_t port = 8800;
-    std::string endPoint = ip + ":" +  std::to_string(port);
-
-    sra::QueryMasterServer service;
-    grpc::ServerBuilder builder;
-
-    builder.RegisterService(&service);
-    builder.AddListeningPort(endPoint, grpc::InsecureServerCredentials());
-    std::unique_ptr<grpc::Server> server(builder.BuildAndStart());
-    std::cout << "QueryMasterServer listening on port: " << endPoint << std::endl;
-
-    // // Signal to awake client
-    // cv.notify_one();
-
-    server->Wait();
-    server->Shutdown();
-}
-
 void RunRaaSClient()
 {
     std::string ip = "0.0.0.0";
@@ -102,24 +66,6 @@ void RunRaaSClient()
     {
         std::cout << "Call raas server failed." << std::endl;
     }
-}
-
-void RunRaaSServer()
-{
-    std::string ip = "0.0.0.0";
-    uint16_t port = 8801;
-    std::string endPoint = ip + ":" +  std::to_string(port);
-
-    sra::RaasServer service;
-    grpc::ServerBuilder builder;
-
-    builder.RegisterService(&service);
-    builder.AddListeningPort(endPoint, grpc::InsecureServerCredentials());
-    std::unique_ptr<grpc::Server> server(builder.BuildAndStart());
-    std::cout << "RaasServer listening on port: " << endPoint << std::endl;
-
-    server->Wait();
-    server->Shutdown();
 }
 
 void RunSaaSClient()
@@ -146,49 +92,15 @@ void RunSaaSClient()
     }
 }
 
-void RunSaaSServer()
-{
-    std::string ip = "0.0.0.0";
-    uint16_t port = 8802;
-    std::string endPoint = ip + ":" +  std::to_string(port);
-
-    sra::SaasServer service;
-    grpc::ServerBuilder builder;
-
-    builder.RegisterService(&service);
-    builder.AddListeningPort(endPoint, grpc::InsecureServerCredentials());
-    std::unique_ptr<grpc::Server> server(builder.BuildAndStart());
-    std::cout << "SaasServer listening on port: " << endPoint << std::endl;
-
-    server->Wait();
-    server->Shutdown();
-}
-
-
-
 int main(int argc, char** argv)
 {
-    InitTracer();
-    // set global propagator
-    opentelemetry::context::propagation::GlobalTextMapPropagator::SetGlobalPropagator(
-        opentelemetry::nostd::shared_ptr<opentelemetry::context::propagation::TextMapPropagator>(
-            new trace_api::propagation::HttpTraceContext()));
+    sra::InitSraTracer();
 
     std::string rootSpanName = "Root_Span";
     trace_api::StartSpanOptions opts;
     opts.kind = trace_api::SpanKind::kClient;
-    auto rootSpan = get_tracer(sra::c_sraLibName, sra::c_versionNumber)->StartSpan(rootSpanName, {}, opts);
-    auto scope = get_tracer(sra::c_sraLibName)->WithActiveSpan(rootSpan);
-
-    // std::thread th1(&RunQueryMasterServer);
-    // std::thread th2(&RunQueryMasterClient);
-    // th2.join();
-    auto f1 = std::async(std::launch::async, RunQueryMasterServer);
-    auto f2 = std::async(std::launch::async, RunRaaSServer);
-    auto f3 = std::async(std::launch::async, RunSaaSServer);
-    // auto f2 = std::async(std::launch::deferred, RunQueryMasterClient);
-    // std::this_thread::sleep_for(std::chrono::seconds(3));
-    // f2.get();
+    auto rootSpan = sra::get_tracer(sra::c_sraLibName, sra::c_versionNumber)->StartSpan(rootSpanName, {}, opts);
+    auto scope = sra::get_tracer(sra::c_sraLibName)->WithActiveSpan(rootSpan);
 
     RunQueryMasterClient();
     RunRaaSClient();
@@ -198,8 +110,7 @@ int main(int argc, char** argv)
     rootSpan->SetAttribute("MachineName", "SraMachine");
     rootSpan->End();
 
-    CleanupTracer();
-    std::this_thread::sleep_for(std::chrono::minutes(10));
+    sra::CleanupTracer();
 
     return 0;
 }

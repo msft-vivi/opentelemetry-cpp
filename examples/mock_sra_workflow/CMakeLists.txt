@@ -39,20 +39,13 @@ else()
     target_link_libraries(sra_proto ${Protobuf_LIBRARIES})
 endif()
 
-# add_executable(sra sra.cc)
-# target_link_libraries(
-#     sra
-#     sra_proto
-# )
-# patch_protobuf_targets(sra)
-
-foreach(_target sra)
+foreach(_target sra raas saas qm)
     add_executable(${_target} "${_target}.cc")
     target_link_libraries(
         ${_target} sra_proto
         protobuf::libprotobuf
         gRPC::grpc++
-        # opentelemetry_trace
+        opentelemetry_trace
         opentelemetry_exporter_zipkin_trace)
     patch_protobuf_targets(${_target})
 endforeach()

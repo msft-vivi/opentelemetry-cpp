@@ -24,8 +24,20 @@
 using grpc::ClientContext;
 using grpc::ServerContext;
 
-namespace
+namespace resource = opentelemetry::sdk::resource;
+
+namespace sra
 {
+
+const char* c_sraLibName = "SraLib";
+const char* c_queryMasterClientLibName = "QueryMasterClientLib";
+const char* c_queryMasterServerLibName = "QueryMasterServerLib";
+const char* c_raasClientLibName = "RaaSClientLib";
+const char* c_raasServerLibName = "RaaSServerLib";
+const char* c_saasClientLibName = "SaaSClientLib";
+const char* c_saasServerLibName = "SaaSServerLib";
+const char* c_versionNumber = "1.0.0";
+
 template <typename T>
 class BondRpcTextMapCarrier : public opentelemetry::context::propagation::TextMapCarrier
 {
@@ -54,14 +66,103 @@ public:
   T *m_headers;
 };
 
-void InitTracer()
+void InitQueryMasterTracer()
 {
-  namespace resource = opentelemetry::sdk::resource;
-
   opentelemetry::exporter::zipkin::ZipkinExporterOptions opts;
-  resource::ResourceAttributes attributes = {{"service.name", "sra_service"}};
 
+  resource::ResourceAttributes attributes = {{"service.name", "QueryMasterService"}};
   auto resources = resource::Resource::Create(attributes);
+
+  auto exporter  = opentelemetry::exporter::zipkin::ZipkinExporterFactory::Create(opts);
+  auto processor =
+      opentelemetry::sdk::trace::SimpleSpanProcessorFactory::Create(std::move(exporter));
+
+  std::vector<std::unique_ptr<opentelemetry::sdk::trace::SpanProcessor>> processors;
+  processors.push_back(std::move(processor));
+
+  // Default is an always-on sampler.
+  std::shared_ptr<opentelemetry::sdk::trace::TracerContext> context =
+      opentelemetry::sdk::trace::TracerContextFactory::Create(std::move(processors), resources);
+
+  std::shared_ptr<opentelemetry::trace::TracerProvider> provider =
+      opentelemetry::sdk::trace::TracerProviderFactory::Create(context);
+
+  // Set the global trace provider
+  opentelemetry::trace::Provider::SetTracerProvider(provider);
+
+  // set global propagator
+  opentelemetry::context::propagation::GlobalTextMapPropagator::SetGlobalPropagator(
+      opentelemetry::nostd::shared_ptr<opentelemetry::context::propagation::TextMapPropagator>(
+          new opentelemetry::trace::propagation::HttpTraceContext()));
+}
+
+void InitSaaSTracer()
+{
+  opentelemetry::exporter::zipkin::ZipkinExporterOptions opts;
+
+  resource::ResourceAttributes attributes = {{"service.name", "SaaSService"}};
+  auto resources = resource::Resource::Create(attributes);
+
+  auto exporter  = opentelemetry::exporter::zipkin::ZipkinExporterFactory::Create(opts);
+  auto processor =
+      opentelemetry::sdk::trace::SimpleSpanProcessorFactory::Create(std::move(exporter));
+
+  std::vector<std::unique_ptr<opentelemetry::sdk::trace::SpanProcessor>> processors;
+  processors.push_back(std::move(processor));
+
+  // Default is an always-on sampler.
+  std::shared_ptr<opentelemetry::sdk::trace::TracerContext> context =
+      opentelemetry::sdk::trace::TracerContextFactory::Create(std::move(processors), resources);
+
+  std::shared_ptr<opentelemetry::trace::TracerProvider> provider =
+      opentelemetry::sdk::trace::TracerProviderFactory::Create(context);
+
+  // Set the global trace provider
+  opentelemetry::trace::Provider::SetTracerProvider(provider);
+
+  // set global propagator
+  opentelemetry::context::propagation::GlobalTextMapPropagator::SetGlobalPropagator(
+      opentelemetry::nostd::shared_ptr<opentelemetry::context::propagation::TextMapPropagator>(
+          new opentelemetry::trace::propagation::HttpTraceContext()));
+}
+
+void InitRaaSTracer()
+{
+  opentelemetry::exporter::zipkin::ZipkinExporterOptions opts;
+
+  resource::ResourceAttributes attributes = {{"service.name", "RaaSService"}};
+  auto resources = resource::Resource::Create(attributes);
+
+  auto exporter  = opentelemetry::exporter::zipkin::ZipkinExporterFactory::Create(opts);
+  auto processor =
+      opentelemetry::sdk::trace::SimpleSpanProcessorFactory::Create(std::move(exporter));
+
+  std::vector<std::unique_ptr<opentelemetry::sdk::trace::SpanProcessor>> processors;
+  processors.push_back(std::move(processor));
+
+  // Default is an always-on sampler.
+  std::shared_ptr<opentelemetry::sdk::trace::TracerContext> context =
+      opentelemetry::sdk::trace::TracerContextFactory::Create(std::move(processors), resources);
+
+  std::shared_ptr<opentelemetry::trace::TracerProvider> provider =
+      opentelemetry::sdk::trace::TracerProviderFactory::Create(context);
+
+  // Set the global trace provider
+  opentelemetry::trace::Provider::SetTracerProvider(provider);
+
+  // set global propagator
+  opentelemetry::context::propagation::GlobalTextMapPropagator::SetGlobalPropagator(
+      opentelemetry::nostd::shared_ptr<opentelemetry::context::propagation::TextMapPropagator>(
+          new opentelemetry::trace::propagation::HttpTraceContext()));
+}
+
+void InitSraTracer()
+{
+  opentelemetry::exporter::zipkin::ZipkinExporterOptions opts;
+
+  resource::ResourceAttributes attributes = {{"service.name", "SraService"}};
+  auto resources = resource::Resource::Create(attributes);
+
   auto exporter  = opentelemetry::exporter::zipkin::ZipkinExporterFactory::Create(opts);
   auto processor =
       opentelemetry::sdk::trace::SimpleSpanProcessorFactory::Create(std::move(exporter));
