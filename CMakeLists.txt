@@ -484,20 +484,31 @@ if(OTELCPP_MAINTAINER_MODE)
 endif(OTELCPP_MAINTAINER_MODE)
 
 list(APPEND CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}")
-
+option(USE_THIRD_PARTY_GTEST "Using third party googletest build" OFF)
 include(CTest)
 if(BUILD_TESTING)
+  message("-- BUILD_TESTING ON")
   add_definitions(-DENABLE_TEST)
-  if(EXISTS ${CMAKE_BINARY_DIR}/lib/libgtest.a)
+  set(GTEST_LIB_DIR ${CMAKE_SOURCE_DIR}/third_party/lib/googletest)
+
+  if(USE_THIRD_PARTY_GTEST AND EXISTS ${GTEST_LIB_DIR}/libgtest.a AND EXISTS ${GTEST_LIB_DIR}/libgmock.a)
     # Prefer GTest from build tree. GTest is not always working with
     # CMAKE_PREFIX_PATH
+
+    # GMock lib (bothering: how to build this lib before building other target which depend on it)
+    set(GMOCK_LIB
+        ${GTEST_LIB_DIR}/libgmock.a
+        ${GTEST_LIB_DIR}/libgmock_main.a)
+
     set(GTEST_INCLUDE_DIRS
         ${CMAKE_CURRENT_SOURCE_DIR}/third_party/googletest/googletest/include
         ${CMAKE_CURRENT_SOURCE_DIR}/third_party/googletest/googlemock/include)
+
     set(GTEST_BOTH_LIBRARIES
-        ${CMAKE_BINARY_DIR}/lib/libgtest.a
-        ${CMAKE_BINARY_DIR}/lib/libgtest_main.a
-        ${CMAKE_BINARY_DIR}/lib/libgmock.a)
+        ${GTEST_LIB_DIR}/libgtest.a
+        ${GTEST_LIB_DIR}/libgtest_main.a
+        ${GTEST_LIB_DIR}/libgmock.a
+        ${GTEST_LIB_DIR}/libgmock_main.a)
   elseif(WIN32)
     # Make sure we are always bootsrapped with vcpkg on Windows
     find_package(GTest REQUIRED)
@@ -507,11 +518,18 @@ if(BUILD_TESTING)
     endif()
   else()
     # Prefer GTest installed by OS distro, brew or vcpkg package manager
+    # GTest contains Gmock.
     find_package(GTest REQUIRED)
+    if(GTEST_FOUND OR GTest_FOUND)
+      message(STATUS "Found GTEST: ${GTEST_LIBRARIES}}")
+      # Some test targets require GMock as link library.
+      set(GMOCK_LIB GTest::gmock GTest::gmock_main)
+    endif()
   endif()
   include_directories(SYSTEM ${GTEST_INCLUDE_DIRS})
   message("GTEST_INCLUDE_DIRS   = ${GTEST_INCLUDE_DIRS}")
   message("GTEST_BOTH_LIBRARIES = ${GTEST_BOTH_LIBRARIES}")
+  message("GMOCK_LIB = ${GMOCK_LIB}")
   enable_testing()
   if(WITH_BENCHMARK)
     # Benchmark respects the CMAKE_PREFIX_PATH

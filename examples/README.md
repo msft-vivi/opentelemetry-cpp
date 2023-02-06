@@ -30,6 +30,29 @@
         sudo ./ci/install_protobuf.sh
     ```
 
+* Install Googletest
+    ```bash
+        wget https://github.com/google/googletest/archive/release-1.12.0.tar.gz
+        mkdir googletest && tar -zxvf release-1.12.0.tar.gz -C googletest --strip-components=1
+        mkdir build
+        cd build
+        cmake -DCMAKE_INSTALL_PREFIX=/tmp/gtest -DCMAKE_PREFIX_PATH=/tmp/gtest ..
+        cmake --build . --target install
+        # Utill here, you will find some lib and header files will be installed at /tmp/gtest
+
+        # In CMakeLists.txt
+        # GMock will be included automatically if BUILD_GMOCK is ON when build GTest
+        find_package(GTest CONFIG REQUIRED)
+        set(GMOCK_LIB GTest::gmock GTest::gmock_main)
+
+        # GTEST_BOTH_LIBRARIES will be set implicitly by cmake.
+        #set(GTEST_BOTH_LIBRARIES GTest::gtest GTest::gtest_main)
+
+        add_executable(main ${GMOCK_LIB} ${GTEST_BOTH_LIBRARIES})
+
+    ```
+    * [Ref](https://stackoverflow.com/questions/49736336/cmake-is-unable-to-find-packages-of-gmock)
+
 * Build examples
     ```bash
         cmake -DBUILD_TESTING=OFF -DWITH_EXAMPLES_HTTP=ON -DWITH_ZIPKIN=ON ..
@@ -77,3 +100,14 @@
 
 * E0204 23:21:12.555564756   30360 client_context.cc:130]      assertion failed: call_ == nullptr
     * ClientContext objects must not be used for multiple requests.
+
+* GMOCK_LIB not found when build
+    * Some executable target depend on GMOCK_LI, howerver the main CMakeLists.txt is not define this variable, so we should define it to fix.
+    ```bash
+        # Note that the libgmock.a and libgmock_main.a may different int your environment.
+        set(GMOCK_LIB /usr/local/lib/libgmock.a /usr/local/lib/libgmock_main.a)
+    ```
+
+* Some test target depending on gtest or gmock link failed, some possible reasons:
+    * GoogleTest's version is too old, try to update.
+    * GoogleTest include path is not inlcuded into searching paths.
