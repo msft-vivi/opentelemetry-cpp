@@ -2,66 +2,56 @@
 
 ## Get Started
 
+* Install Dev Packages
+
+```bash
+sudo apt update && sudo apt upgrade && sudo apt install curl && sudo apt-get install libcurl4-openssl-dev
+```
+
 * Download source code
     ```bash
          git clone --recursive https://github.com/open-telemetry/opentelemetry-cpp
+
+         // clone submodules after clone opentelemetry-cpp
+         git submodule update --init --recursive
+         git submodule update --recursive --remote
+
+         // Init a particluar submodule (tools/vcpkg indicates the submodule path)
+         git submodule update --init tools/vcpkg
 
          # executable file will be installed at /usr/local/bin
          # lib will be saved at /usr/local/lib
          # header files will be saved at /usr/local/include
     ```
 
-* Install protobuf and protobuf-compiler
-    ```bash
-        # This command will install libprotobuf-dev(libprotobuf.a) and protobuf-compiler(protoc)
-        # Note that protc is different protobuf, the former is compiler, the later is lib
-        # Note that this libprotobuf-dev only contains some header files, link needs source file (implementation)
-        sudo apt install -y protobuf-compiler
+* Install Vcpkg
 
-        # Check
-        protoc --version
-    ```
-* Install protobuf source code
+  - Add following section to .gitmodules
     ```bash
-        #set -e
-        [ -z "${PROTOBUF_VERSION}" ] && export PROTOBUF_VERSION="3.6.1"
-
-        # Make sure that the PROTOBUF_VERSION must be same with protoc and libprotcbuf.a
-        sudo ./ci/install_protobuf.sh
+    [submodule "tools/vcpkg"]
+    path = tools/vcpkg
+    url = https://github.com/Microsoft/vcpkg
+    branch = master
     ```
 
-* Install Googletest
+  - Init submodule
     ```bash
-        wget https://github.com/google/googletest/archive/release-1.12.0.tar.gz
-        mkdir googletest && tar -zxvf release-1.12.0.tar.gz -C googletest --strip-components=1
-        mkdir build
-        cd build
-        cmake -DCMAKE_INSTALL_PREFIX=/tmp/gtest -DCMAKE_PREFIX_PATH=/tmp/gtest ..
-        cmake --build . --target install
-        # Utill here, you will find some lib and header files will be installed at /tmp/gtest
+    git submodule update --init tools/vcpkg
+    ```   
 
-        # In CMakeLists.txt
-        # GMock will be included automatically if BUILD_GMOCK is ON when build GTest
-        find_package(GTest CONFIG REQUIRED)
-        set(GMOCK_LIB GTest::gmock GTest::gmock_main)
-
-        # GTEST_BOTH_LIBRARIES will be set implicitly by cmake.
-        #set(GTEST_BOTH_LIBRARIES GTest::gtest GTest::gtest_main)
-
-        add_executable(main ${GMOCK_LIB} ${GTEST_BOTH_LIBRARIES})
-
-    ```
-    * [Ref](https://stackoverflow.com/questions/49736336/cmake-is-unable-to-find-packages-of-gmock)
+    **Remove build directory, then rebuild after installing vcpkg and correlated packages**
 
 * Build examples
     ```bash
-        cmake -DBUILD_TESTING=OFF -DWITH_EXAMPLES_HTTP=ON -DWITH_ZIPKIN=ON ..
+        // Generate build files
+        cmake -DBUILD_TESTING=OFF -DWITH_EXAMPLES_HTTP=ON -DWITH_ZIPKIN=ON -DCMAKE_TOOLCHAIN_FILE=../tools/vcpkg/scripts/buildsystems/vcpkg.cmake ..
 
         # Enable WITH_OTLP to let cmake execute find_package(Protobuf)
-        sudo cmake -DBUILD_TESTING=OFF -DWITH_OTLP=ON -DWITH_OTLP_GRPC=ON ..
+        sudo cmake -DBUILD_TESTING=OFF -DWITH_OTLP=ON -DWITH_OTLP_GRPC=ON -DWITH_ZIPKIN=ON -DCMAKE_TOOLCHAIN_FILE=../tools/vcpkg/scripts/buildsystems/vcpkg.cmake ..
 
+        // Build Target
         cmake --build . --target example_zipkin 
-        cmake --build . --target client
+        cmake --build . --target http_server http_client -j 8
     ```
 
 * Start a observable backend (here is zipkin)
@@ -111,3 +101,51 @@
 * Some test target depending on gtest or gmock link failed, some possible reasons:
     * GoogleTest's version is too old, try to update.
     * GoogleTest include path is not inlcuded into searching paths.
+
+
+* Install protobuf source code
+    ```bash
+        #set -e
+        [ -z "${PROTOBUF_VERSION}" ] && export PROTOBUF_VERSION="3.6.1"
+
+        # Make sure that the PROTOBUF_VERSION must be same with protoc and libprotcbuf.a
+        sudo ./ci/install_protobuf.sh
+    ```
+
+* Install Googletest
+    ```bash
+        wget https://github.com/google/googletest/archive/release-1.12.0.tar.gz
+        mkdir googletest && tar -zxvf release-1.12.0.tar.gz -C googletest --strip-components=1
+        mkdir build
+        cd build
+        cmake -DCMAKE_INSTALL_PREFIX=/tmp/gtest -DCMAKE_PREFIX_PATH=/tmp/gtest ..
+        cmake --build . --target install
+        # Utill here, you will find some lib and header files will be installed at /tmp/gtest
+
+        # In CMakeLists.txt
+        # GMock will be included automatically if BUILD_GMOCK is ON when build GTest
+        find_package(GTest CONFIG REQUIRED)
+        set(GMOCK_LIB GTest::gmock GTest::gmock_main)
+
+        # GTEST_BOTH_LIBRARIES will be set implicitly by cmake.
+        #set(GTEST_BOTH_LIBRARIES GTest::gtest GTest::gtest_main)
+
+        add_executable(main ${GMOCK_LIB} ${GTEST_BOTH_LIBRARIES})
+
+    ```
+    * [Ref](https://stackoverflow.com/questions/49736336/cmake-is-unable-to-find-packages-of-gmock)
+
+* Install protobuf and protobuf-compiler
+    ```bash
+        # This command will install libprotobuf-dev(libprotobuf.a) and protobuf-compiler(protoc)
+        # Note that protc is different protobuf, the former is compiler, the later is lib
+        # Note that this libprotobuf-dev only contains some header files, link needs source file (implementation)
+        sudo apt install -y protobuf-compiler
+
+        # Check
+        protoc --version
+    ```
+
+## Reference
+
+- [Vcpkg Get Started](https://github.com/Microsoft/vcpkg)
