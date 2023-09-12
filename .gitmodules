@@ -32,3 +32,8 @@ branch = main
 path = third_party/nlohmann-json
 url = https://github.com/nlohmann/json
 branch = master
+
+[submodule "tools/vcpkg"]
+path = tools/vcpkg
+url = https://github.com/Microsoft/vcpkg
+branch = master
