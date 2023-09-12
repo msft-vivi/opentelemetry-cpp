@@ -45,6 +45,7 @@ private:
 
     virtual void CopyTo(PlacementBuffer &buffer) const noexcept
     {
+      // Create shared_ptr_wrapper in buffer that is pre-allocated, then initialize it with copy constructor
       new (buffer.data) shared_ptr_wrapper{*this};
     }
 
