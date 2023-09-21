@@ -24,12 +24,15 @@ void sendRequest(const std::string &url)
   opentelemetry::ext::http::common::UrlParser url_parser(url);
 
   std::string span_name = url_parser.path_;
-  auto span             = get_tracer("http-client")
-                  ->StartSpan(span_name,
-                              {{SemanticConventions::kHttpUrl, url_parser.url_},
-                               {SemanticConventions::kHttpScheme, url_parser.scheme_},
-                               {SemanticConventions::kHttpMethod, "GET"}},
-                              options);
+  auto span = get_tracer("http-client")->StartSpan(
+                                            span_name,
+                                            {
+                                                {SemanticConventions::kHttpUrl, url_parser.url_},
+                                                {SemanticConventions::kHttpScheme, url_parser.scheme_},
+                                                {SemanticConventions::kHttpMethod, "GET"}
+                                            },
+                                            options);
+
   auto scope = get_tracer("http-client")->WithActiveSpan(span);
 
   // inject current context into http header

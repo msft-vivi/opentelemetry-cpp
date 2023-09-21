@@ -53,27 +53,31 @@ public:
 
 void InitClientTracer()
 {
+  // Define resource attributes describing service.
   namespace resource = opentelemetry::sdk::resource;
-
   opentelemetry::exporter::zipkin::ZipkinExporterOptions opts;
-  resource::ResourceAttributes attributes = {{"service.name", "bondrpc-client"}};
-
+  resource::ResourceAttributes attributes = {{"service.name", "rpc-client"}};
   auto resources = resource::Resource::Create(attributes);
+
+  // Create exporter, here we use the zipkin exporter provided by Otel.
   auto exporter = opentelemetry::exporter::zipkin::ZipkinExporterFactory::Create();
+
+  // Create processors, Otel supports multiple processors at once.
   auto processor =
       opentelemetry::sdk::trace::SimpleSpanProcessorFactory::Create(std::move(exporter));
-
   std::vector<std::unique_ptr<opentelemetry::sdk::trace::SpanProcessor>> processors;
   processors.push_back(std::move(processor));
-  // Default is an always-on sampler.
+
+  // Create tracer context with an always-on sampler by default.
   std::shared_ptr<opentelemetry::sdk::trace::TracerContext> context =
       opentelemetry::sdk::trace::TracerContextFactory::Create(std::move(processors), resources);
+
+  // Create tracer provider with the tracer context, then set the global trace provider.
   std::shared_ptr<opentelemetry::trace::TracerProvider> provider =
       opentelemetry::sdk::trace::TracerProviderFactory::Create(context);
-  // Set the global trace provider
   opentelemetry::trace::Provider::SetTracerProvider(provider);
 
-  // set global propagator
+  // Set global propagator.
   opentelemetry::context::propagation::GlobalTextMapPropagator::SetGlobalPropagator(
       opentelemetry::nostd::shared_ptr<opentelemetry::context::propagation::TextMapPropagator>(
           new opentelemetry::trace::propagation::HttpTraceContext()));
