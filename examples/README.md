@@ -10,18 +10,18 @@ sudo apt update && sudo apt upgrade && sudo apt install curl && sudo apt-get ins
 
 * Download source code
     ```bash
-         git clone --recursive https://github.com/open-telemetry/opentelemetry-cpp
+    git clone --recursive https://github.com/open-telemetry/opentelemetry-cpp
 
-         // clone submodules after clone opentelemetry-cpp
-         git submodule update --init --recursive
-         git submodule update --recursive --remote
+    // clone submodules after clone opentelemetry-cpp
+    git submodule update --init --recursive
+    git submodule update --recursive --remote
 
-         // Init a particluar submodule (tools/vcpkg indicates the submodule path)
-         git submodule update --init tools/vcpkg
+    // Init a particluar submodule (tools/vcpkg indicates the submodule path)
+    git submodule update --init tools/vcpkg
 
-         # executable file will be installed at /usr/local/bin
-         # lib will be saved at /usr/local/lib
-         # header files will be saved at /usr/local/include
+    # executable file will be installed at /usr/local/bin
+    # lib will be saved at /usr/local/lib
+    # header files will be saved at /usr/local/include
     ```
 
 * Install Vcpkg
@@ -43,42 +43,42 @@ sudo apt update && sudo apt upgrade && sudo apt install curl && sudo apt-get ins
 
 * Build examples
     ```bash
-        // Generate build files
-        cmake -DBUILD_TESTING=OFF -DWITH_EXAMPLES_HTTP=ON -DWITH_ZIPKIN=ON -DCMAKE_TOOLCHAIN_FILE=../tools/vcpkg/scripts/buildsystems/vcpkg.cmake ..
+    // Generate build files
+    cmake -DBUILD_TESTING=OFF -DWITH_EXAMPLES_HTTP=ON -DWITH_ZIPKIN=ON -DCMAKE_TOOLCHAIN_FILE=../tools/vcpkg/scripts/buildsystems/vcpkg.cmake ..
 
-        # Enable WITH_OTLP to let cmake execute find_package(Protobuf)
-        sudo cmake -DBUILD_TESTING=OFF -DWITH_OTLP=ON -DWITH_OTLP_GRPC=ON -DWITH_ZIPKIN=ON -DCMAKE_TOOLCHAIN_FILE=../tools/vcpkg/scripts/buildsystems/vcpkg.cmake ..
+    # Enable WITH_OTLP to let cmake execute find_package(Protobuf)
+    sudo cmake -DBUILD_TESTING=OFF -DWITH_OTLP=ON -DWITH_OTLP_GRPC=ON -DWITH_ZIPKIN=ON -DCMAKE_TOOLCHAIN_FILE=../tools/vcpkg/scripts/buildsystems/vcpkg.cmake ..
 
-        // Build Target
-        cmake --build . --target example_zipkin 
-        cmake --build . --target http_server http_client -j 8
+    // Build Target
+    cmake --build . --target example_zipkin 
+    cmake --build . --target http_server http_client -j 8
     ```
 
-* Start a observable backend (here is zipkin)
+* Start an observable backend (here is zipkin)
     ```bash
-        docker run -d -p 9411:9411 openzipkin/zipkin
+    docker run -d -p 9411:9411 openzipkin/zipkin
     ```
 
 * After modified a .proto file, the previous build output should be cleaned.
     ```
-        cmake --build . --target clean
-        
-        # build proto
-        cmake --build . --target zipkin_bond_proto
+    cmake --build . --target clean
+    
+    # build proto
+    cmake --build . --target zipkin_bond_proto
     ```
 ## Q & A
 * Protobuf compiler version 3.21.6 doesn't match library version 3.6.1
     ```bash
-        Warning info:
-            # CMake Warning at /usr/share/cmake-3.16/Modules/FindProtobuf.cmake:499 (message):
-            # Protobuf compiler version 3.21.6 doesn't match library version 3.6.1
-            # Call Stack (most recent call first):
-            # CMakeLists.txt:307 (find_package)
-            # -- Found Protobuf: /usr/local/lib/libprotobuf.so;-lpthread (found version "3.6.1") 
+    Warning info:
+        # CMake Warning at /usr/share/cmake-3.16/Modules/FindProtobuf.cmake:499 (message):
+        # Protobuf compiler version 3.21.6 doesn't match library version 3.6.1
+        # Call Stack (most recent call first):
+        # CMakeLists.txt:307 (find_package)
+        # -- Found Protobuf: /usr/local/lib/libprotobuf.so;-lpthread (found version "3.6.1") 
 
-        # Find all paths containing libprotobuf.so
-        find /usr -name libprotobuf.so 
-        sudo apt-get remove protobuf-compiler
+    # Find all paths containing libprotobuf.so
+    find /usr -name libprotobuf.so 
+    sudo apt-get remove protobuf-compiler
     ```
     * [ref](https://stackoverflow.com/questions/56704546/protobuf-compiler-version-doesnt-match-library-version-3-6-1-when-not-using-s)
     * [ref2](https://www.linuxquestions.org/questions/linux-newbie-8/protobuf-compiler-version-3-0-0-doesn%27t-match-library-version-2-6-1-aspera-transfer-sdk-4175684062/)
