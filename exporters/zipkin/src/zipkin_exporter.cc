@@ -4,6 +4,7 @@
 #define _WINSOCKAPI_  // stops including winsock.h
 #include "opentelemetry/exporters/zipkin/zipkin_exporter.h"
 #include <mutex>
+#include <fstream>
 #include "opentelemetry/exporters/zipkin/recordable.h"
 #include "opentelemetry/ext/http/client/http_client_factory.h"
 #include "opentelemetry/ext/http/common/url_parser.h"
@@ -74,7 +75,15 @@ sdk::common::ExportResult ZipkinExporter::Export(
       json_spans.push_back(json_span);
     }
   }
+
+  dumpSpanLock_.lock();
+  std::cout << "[ZIPKIN EXPORTER] Exporting " << json_spans.size() << " span(s) to zipkin" << std::endl;
   auto body_s = json_spans.dump();
+  std::ofstream outfile("zipkin_exporter.txt", std::ios::app);
+  outfile << body_s << std::endl;
+  outfile.close();
+  dumpSpanLock_.unlock();
+  
   http_client::Body body_v(body_s.begin(), body_s.end());
   auto result = http_client_->Post(url_parser_.url_, body_v, options_.headers);
   if (result &&

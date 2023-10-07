@@ -52,7 +52,7 @@ public:
     StartSpanOptions options;
     options.kind = SpanKind::kClient;
 
-    std::string span_name = "GreeterClient/Greet";
+    std::string span_name = "ClientSpan";
     auto span             = get_tracer(libVersion)->StartSpan(
         span_name,
         {{SemanticConventions::kRpcSystem, "grpc"},
@@ -61,14 +61,17 @@ public:
          {SemanticConventions::kNetSockPeerAddr, ip},
          {SemanticConventions::kNetPeerPort, port}},
         options);
-    // span->SetAttribute();
+    span->SetAttribute("attrA", "valueA");
+    span->SetAttribute("attrB", "valueB");
     auto scope = get_tracer(libVersion)->WithActiveSpan(span);
 
     // inject current context to grpc metadata
-    auto current_ctx = context::RuntimeContext::GetCurrent();
     RpcHeaderT attributes;
     BondRpcTextMapCarrier<RpcHeaderT> carrier {&attributes};
+
+    // Inject context into carrier
     auto prop = context::propagation::GlobalTextMapPropagator::GetGlobalPropagator();
+    auto current_ctx = context::RuntimeContext::GetCurrent();
     prop->Inject(carrier, current_ctx);
 
     for(const auto& pair : *carrier.m_headers)
@@ -134,7 +137,7 @@ int main(int argc, char **argv)
   auto rootSpan = get_tracer(libVersion)->StartSpan(rootSpanName, {}, opts);
   auto scope = get_tracer(libVersion)->WithActiveSpan(rootSpan);
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
   RunClient(port);
 

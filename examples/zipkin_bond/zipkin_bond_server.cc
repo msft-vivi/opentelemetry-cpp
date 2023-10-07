@@ -52,7 +52,7 @@ public:
                GreetResponse *response) override
   {
     // Sleep for 5s to make distinguished the hierarchial relationship between parent span and child span.
-    std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
     // Create a SpanOptions object and set the kind to Server to inform OpenTel.
     StartSpanOptions options;
@@ -67,35 +67,42 @@ public:
         LogRpcHeader(remoteKeyValuePairs);
     #endif
 
-    const BondRpcTextMapCarrier<RpcHeaderT> carrier {&remoteKeyValuePairs};
-    auto prop        = context::propagation::GlobalTextMapPropagator::GetGlobalPropagator();
+    BondRpcTextMapCarrier<RpcHeaderT> carrier {&remoteKeyValuePairs};
+    auto prop = context::propagation::GlobalTextMapPropagator::GetGlobalPropagator();
+
+    // --------------------- Server-Side---------------------------
+    // Extract context from carrier
     auto current_ctx = context::RuntimeContext::GetCurrent();
     auto new_context = prop->Extract(carrier, current_ctx);
     options.parent   = GetSpan(new_context)->GetContext();
 
-    std::string span_name = "GreeterService/Greet";
-    auto span             = get_tracer("zipkin_grpc_server_lib")->StartSpan(span_name,
-                                              {{SemanticConventions::kRpcSystem, "grpc"},
-                                               {SemanticConventions::kRpcService, "GreeterService"},
-                                               {SemanticConventions::kRpcMethod, "Greet"},
-                                               {SemanticConventions::kRpcGrpcStatusCode, 0}},
-                                              options);
-    auto scope            = get_tracer("zipkin_grpc_server_lib")->WithActiveSpan(span);
+    // Create a child span
+    auto spanName = "ServerSpan";
+    auto childSpan = get_tracer("grpc_server_lib")
+        ->StartSpan(spanName,
+                    {{SemanticConventions::kRpcSystem, "grpc"},
+                    {SemanticConventions::kRpcService, "GreeterService"},
+                    {SemanticConventions::kRpcMethod, "Greet"},
+                    {SemanticConventions::kRpcGrpcStatusCode, 0}},
+                    options);
+
+    // Make child span to be the active span.
+    auto scope = get_tracer("grpc_server_lib")->WithActiveSpan(childSpan);
+
     // Mock some operations.
-    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
     // Fetch and parse whatever HTTP headers we can from the gRPC request.
-    span->AddEvent("Processing client attributes");
+    // childSpan->AddEvent("Processing client attributes");
 
     std::string req = request->m_message();
 
     // Send response to client
     response->set_m_message("This is a response message.");
-
-    span->AddEvent("Response sent to client");
-    span->SetStatus(StatusCode::kOk);
+    // childSpan->AddEvent("Response sent to client");
+    childSpan->SetStatus(StatusCode::kOk);
     // Make sure to end your spans!
-    span->End();
+    childSpan->End();
     return Status::OK;
   }
 

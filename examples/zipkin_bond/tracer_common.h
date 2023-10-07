@@ -88,7 +88,8 @@ void InitServerTracer()
   namespace resource = opentelemetry::sdk::resource;
 
   opentelemetry::exporter::zipkin::ZipkinExporterOptions opts;
-  resource::ResourceAttributes attributes = {{"service.name", "bondrpc-server"}};
+  // service.name will be rendered as Address value in zipkin
+  resource::ResourceAttributes attributes = {{"service.name", "bondrpc-server"}}; 
 
   auto resources = resource::Resource::Create(attributes);
   auto exporter = opentelemetry::exporter::zipkin::ZipkinExporterFactory::Create();

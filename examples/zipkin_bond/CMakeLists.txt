@@ -36,7 +36,7 @@ else()
   target_link_libraries(zipkin_bond_proto ${Protobuf_LIBRARIES})
 endif()
 
-foreach(_target zipkin_bond_client zipkin_bond_server)
+foreach(_target zipkin_bond_client zipkin_bond_server zipkin_exporter_client)
   add_executable(${_target} "${_target}.cc")
   target_link_libraries(
     ${_target} zipkin_bond_proto protobuf::libprotobuf gRPC::grpc++

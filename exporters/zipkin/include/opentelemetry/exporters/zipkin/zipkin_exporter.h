@@ -77,6 +77,9 @@ private:
   ZipkinExporter(std::shared_ptr<opentelemetry::ext::http::client::HttpClientSync> http_client);
 
   mutable opentelemetry::common::SpinLockMutex lock_;
+
+  mutable opentelemetry::common::SpinLockMutex dumpSpanLock_;
+
   bool isShutdown() const noexcept;
 };
 }  // namespace zipkin
